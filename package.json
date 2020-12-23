@@ -1,0 +1,45 @@
+{
+  "name": "whalesong",
+  "version": "0.1.0",
+  "description": "Distributed container registry built on hypercores and IPFS",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "test": "standard",
+    "dev": "DEBUG=* node index.js",
+    "ipfsid": "IPFS_PATH=~/.whalesong/ipfs ipfs id"
+  },
+  "keywords": [
+    "docker",
+    "registry",
+    "hypercore",
+    "hyperbee",
+    "ipfs",
+    "distributed"
+  ],
+  "author": "Linus Karlsson <whalesong@linuskarlsson.se>",
+  "engines": {
+    "node": ">= 14.0.0"
+  },
+  "license": "AGPL-3.0-or-later",
+  "dependencies": {
+    "@hyperswarm/replicator": "^1.10.0",
+    "debug": "^4.3.1",
+    "express": "^4.17.1",
+    "go-ipfs": "^0.7.0",
+    "hyperbee": "^1.1.1",
+    "hypercore": "^9.6.0",
+    "ipfs-http-client": "^48.1.2",
+    "ipfsd-ctl": "^7.1.1",
+    "it-all": "^1.0.4",
+    "uint8arrays": "^1.1.0",
+    "uuid": "^8.3.2"
+  },
+  "devDependencies": {
+    "standard": "^16.0.3"
+  },
+  "repository": {
+    "type" : "git",
+    "url" : "https://github.com/zozs/whalesong.git"
+  }
+}
