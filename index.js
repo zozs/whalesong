@@ -1,14 +1,16 @@
+import Debug from 'debug'
 import express from 'express'
 import DistributedStorage from './lib/distributed-storage.js'
 
 const app = express()
+const debug = Debug('whalesong:index')
 
 const host = process.env.WHALESONG_HOST || 'localhost'
 const port = process.env.WHALESONG_PORT || '5005'
 const hostport = `http://${host}:${port}`
 
 async function setUpApp () {
-  console.debug('Initializing storage provider')
+  debug('Initializing storage provider')
   const storage = new DistributedStorage()
   await storage.init()
 
@@ -26,7 +28,7 @@ async function setUpApp () {
     const { org, name } = req.params
     const uuid = await storage.newUpload(org, name)
 
-    console.debug('Creating temporary upload')
+    debug('Creating temporary upload')
 
     res.set('Location', `${hostport}/v2/${org}/${name}/blobs/uploads/${uuid}`)
     res.set('Range', '0-0')
@@ -37,7 +39,7 @@ async function setUpApp () {
     const { org, name, uuid } = req.params
     const uploaded = await storage.patchUpload(org, name, uuid, req.body)
 
-    console.debug(`UUID ${uuid} now has ${uploaded} bytes.`)
+    debug(`UUID ${uuid} now has ${uploaded} bytes.`)
     res.set('Location', `${hostport}/v2/${org}/${name}/blobs/uploads/${uuid}`)
     res.set('Range', `0-${uploaded}`)
     res.sendStatus(202)
@@ -48,11 +50,12 @@ async function setUpApp () {
     const expectedDigest = req.query.digest
     const { digest, uploaded } = await storage.putUpload(org, name, uuid, req.body)
 
-    console.debug(`UUID ${uuid} now has ${uploaded} bytes after finish.`)
+    debug(`UUID ${uuid} now has ${uploaded} bytes after finish.`)
     if (expectedDigest !== digest) {
-      console.debug(`expected digest ${expectedDigest} did not match actual digest ${digest}`)
+      console.warn(`expected digest ${expectedDigest} did not match actual digest ${digest}`)
       res.sendStatus(400)
     } else {
+      console.log(`Finished uploading blob with digest ${digest}, for UUID ${uuid}`)
       res.set('Docker-Content-Digest', digest)
       res.set('Location', `${hostport}/v2/${org}/${name}/blobs/${digest}`)
       res.sendStatus(204)
@@ -114,7 +117,7 @@ async function setUpApp () {
     const { org, name, tag } = req.params
     const digest = await storage.putManifest(org, name, tag, req.body)
 
-    console.debug(`Stored manifest ${org}/${name}:${tag} with digest ${digest}`)
+    console.log(`Stored manifest ${org}/${name}:${tag} with digest ${digest}`)
 
     res.set('Docker-Content-Digest', digest)
     res.set('Location', `${hostport}/v2/${org}/${name}/manifests/${digest}`)
@@ -122,7 +125,7 @@ async function setUpApp () {
   })
 
   app.listen(port, () => {
-    console.log(`Node-registry listening at ${hostport}`)
+    console.log(`Whalesong listening at ${hostport}`)
   })
 }
 
