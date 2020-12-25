@@ -10,9 +10,13 @@ const port = process.env.WHALESONG_PORT || '5005'
 const hostport = `http://${host}:${port}`
 
 async function setUpApp () {
-  debug('Initializing storage provider')
+  console.log('Initializing storage provider. Please wait.')
   const storage = new DistributedStorage()
   await storage.init()
+  const myPubKey = await storage.getMyPubKey()
+  console.log('Initialization complete. To tag and push images, use the following URL:')
+  console.log(`${host}:${port}/${myPubKey}/<name>:<tag>`)
+  
 
   app.use(express.raw({ type: () => true, limit: 1024 * 1024 * 1024 })) // max 1 GiB chunk
 

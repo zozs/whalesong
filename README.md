@@ -78,6 +78,7 @@ The data is stored in the `~/.whalesong` directory in your home.
 * Increase performance and reduce memory usage by not caching layers in memory when passing them between IPFS and the registry.
 * Support more registry operations, such as content discovery and content management.
 * Support multiple writable feeds from a single host.
+* Cleanup of unused blobs.
 * General reliability improvements.
 
 ## Conformance
