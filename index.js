@@ -1,3 +1,4 @@
+import DatDns from 'dat-dns'
 import Debug from 'debug'
 import express from 'express'
 import DistributedStorage from './lib/distributed-storage.js'
@@ -17,6 +18,14 @@ async function setUpApp () {
   console.log('Initialization complete. To tag and push images, use the following URL:')
   console.log(`${host}:${port}/${myPubKey}/<name>:<tag>`)
   
+  const whalesongDns = DatDns({
+    hashRegex: /^[0-9a-f]{64}?$/i,
+    recordName: 'whalesong',
+    protocolRegex: /^whalesong:\/\/([0-9a-f]{64})/i,
+    txtRegex: /^"?whalesongkey=([0-9a-f]{64})"?$/i
+  })
+
+  const lookupOrg = async (org) => whalesongDns.resolveName(org)
 
   app.use(express.raw({ type: () => true, limit: 1024 * 1024 * 1024 })) // max 1 GiB chunk
 
@@ -30,7 +39,8 @@ async function setUpApp () {
 
   app.post('/v2/:org/:name/blobs/uploads/', async (req, res) => {
     const { org, name } = req.params
-    const uuid = await storage.newUpload(org, name)
+    const pubKey = await lookupOrg(org)
+    const uuid = await storage.newUpload(pubKey, name)
 
     debug('Creating temporary upload')
 
@@ -41,7 +51,8 @@ async function setUpApp () {
 
   app.patch('/v2/:org/:name/blobs/uploads/:uuid', async (req, res) => {
     const { org, name, uuid } = req.params
-    const uploaded = await storage.patchUpload(org, name, uuid, req.body)
+    const pubKey = await lookupOrg(org)
+    const uploaded = await storage.patchUpload(pubKey, name, uuid, req.body)
 
     debug(`UUID ${uuid} now has ${uploaded} bytes.`)
     res.set('Location', `${hostport}/v2/${org}/${name}/blobs/uploads/${uuid}`)
@@ -51,8 +62,9 @@ async function setUpApp () {
 
   app.put('/v2/:org/:name/blobs/uploads/:uuid', async (req, res) => {
     const { org, name, uuid } = req.params
+    const pubKey = await lookupOrg(org)
     const expectedDigest = req.query.digest
-    const { digest, uploaded } = await storage.putUpload(org, name, uuid, req.body)
+    const { digest, uploaded } = await storage.putUpload(pubKey, name, uuid, req.body)
 
     debug(`UUID ${uuid} now has ${uploaded} bytes after finish.`)
     if (expectedDigest !== digest) {
@@ -68,7 +80,8 @@ async function setUpApp () {
 
   app.head('/v2/:org/:name/blobs/:digest', async (req, res) => {
     const { org, name, digest } = req.params
-    if (await storage.hasBlob(org, name, digest)) {
+    const pubKey = await lookupOrg(org)
+    if (await storage.hasBlob(pubKey, name, digest)) {
       console.debug(`Blob with digest ${digest} exists.`)
       res.set('Docker-Content-Digest', digest)
       res.sendStatus(200)
@@ -80,7 +93,8 @@ async function setUpApp () {
 
   app.get('/v2/:org/:name/blobs/:digest', async (req, res) => {
     const { org, name, digest } = req.params
-    const data = await storage.getBlob(org, name, digest)
+    const pubKey = await lookupOrg(org)
+    const data = await storage.getBlob(pubKey, name, digest)
     if (data !== null) {
       console.debug(`Retrieving blob with digest ${digest}.`)
       res.set('Docker-Content-Digest', digest)
@@ -93,7 +107,8 @@ async function setUpApp () {
 
   app.head('/v2/:org/:name/manifests/:tag', async (req, res) => {
     const { org, name, tag } = req.params
-    const { digest } = await storage.getManifest(org, name, tag)
+    const pubKey = await lookupOrg(org)
+    const { digest } = await storage.getManifest(pubKey, name, tag)
     if (digest !== null) {
       res.set('Docker-Content-Digest', digest)
       res.sendStatus(200)
@@ -105,7 +120,8 @@ async function setUpApp () {
 
   app.get('/v2/:org/:name/manifests/:tag', async (req, res) => {
     const { org, name, tag } = req.params
-    const { digest, data } = await storage.getManifest(org, name, tag)
+    const pubKey = await lookupOrg(org)
+    const { digest, data } = await storage.getManifest(pubKey, name, tag)
     if (digest !== null) {
       console.debug(`Retrieving manifest with digest ${digest}`)
       res.set('Docker-Content-Digest', digest)
@@ -119,7 +135,8 @@ async function setUpApp () {
 
   app.put('/v2/:org/:name/manifests/:tag', async (req, res) => {
     const { org, name, tag } = req.params
-    const digest = await storage.putManifest(org, name, tag, req.body)
+    const pubKey = await lookupOrg(org)
+    const digest = await storage.putManifest(pubKey, name, tag, req.body)
 
     console.log(`Stored manifest ${org}/${name}:${tag} with digest ${digest}`)
 

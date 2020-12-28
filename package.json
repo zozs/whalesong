@@ -1,6 +1,6 @@
 {
   "name": "whalesong",
-  "version": "0.1.2",
+  "version": "0.2.0",
   "description": "Distributed container registry built on hypercores and IPFS",
   "main": "index.js",
   "type": "module",
@@ -24,6 +24,7 @@
   "license": "AGPL-3.0-or-later",
   "dependencies": {
     "@hyperswarm/replicator": "^1.10.0",
+    "dat-dns": "^4.1.2",
     "debug": "^4.3.1",
     "express": "^4.17.1",
     "go-ipfs": "^0.7.0",
