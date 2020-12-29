@@ -113,10 +113,6 @@ The data is stored in the `~/.whalesong` directory in your home.
 * Add tests.
 * Remember feeds between launches.
 
-## Behind the scenes
-
-
-
 ## Conformance
 
 The current implementation of the container registry does _not_ fully conform to the [Open Container Initiative Distribution Specification](https://github.com/opencontainers/distribution-spec/blob/master/spec.md). It seems to work well enough with Docker anyway, but it would be nice to make the conformance tests pass.
