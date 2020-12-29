@@ -32,12 +32,21 @@ To see a (verbose) debug log use:
 
 ### Example
 
-After launching the image above, try to pull and run the following test image, which will print a small greeting on your screen.
+After launching the daemon above, open a new shell, and try to pull and run the following test image, which will print a small greeting on your screen.
 
 ```
 $ docker run localhost:5005/efb166fd6a9cb83bdc3d58f362f5a7052c730924b614989b0fbd730cd77a6c2c/hello:latest
 A distributed greeting to you, my friend :)
 ```
+
+Alternatively, you can use the following commands to pull the same image, but using a human-readable name (see [Human-readable organisations/pubkeys](#human-readable-organisationspubkeys) below for an explanation on how this works).
+
+```
+$ docker run localhost:5005/whalesong.club/hello
+A distributed greeting to you, my friend :)
+```
+
+If the example doesn't seem to work, or Docker returns `"Not Found"`, you may have to wait a minute or two if the sync is slow.
 
 ### Pull an image
 
