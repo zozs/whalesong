@@ -111,7 +111,6 @@ The data is stored in the `~/.whalesong` directory in your home.
 * Cleanup of unused blobs.
 * General reliability improvements.
 * Add tests.
-* Remember feeds between launches.
 
 ## Conformance
 
@@ -123,7 +122,7 @@ Whalesong is licensed under GNU AGPL v3 or later, see the `LICENSE` file for the
 
 ```
 whalesong - distributed container registry
-Copyright (c) 2020, Linus Karlsson
+Copyright (c) 2020, 2021, Linus Karlsson
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU Affero General Public License as
