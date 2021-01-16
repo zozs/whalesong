@@ -110,6 +110,7 @@ The data is stored in the `~/.whalesong` directory in your home.
 * Support multiple writable feeds from a single host.
 * Cleanup of unused blobs.
 * General reliability improvements.
+* Automatically prune old and failed/aborted uploads.
 * Add tests.
 
 ## Conformance

@@ -2,6 +2,10 @@ import DatDns from 'dat-dns'
 import Debug from 'debug'
 import express from 'express'
 import DistributedStorage from './lib/distributed-storage.js'
+import { promisify } from 'util'
+import { pipeline as pipelineCb } from 'stream'
+
+const pipeline = promisify(pipelineCb)
 
 const app = express()
 const debug = Debug('whalesong:index')
@@ -17,7 +21,7 @@ async function setUpApp () {
   const myPubKey = await storage.getMyPubKey()
   console.log('Initialization complete. To tag and push images, use the following URL:')
   console.log(`${host}:${port}/${myPubKey}/<name>:<tag>`)
-  
+
   const whalesongDns = DatDns({
     hashRegex: /^[0-9a-f]{64}?$/i,
     recordName: 'whalesong',
@@ -94,11 +98,11 @@ async function setUpApp () {
   app.get('/v2/:org/:name/blobs/:digest', async (req, res) => {
     const { org, name, digest } = req.params
     const pubKey = await lookupOrg(org)
-    const data = await storage.getBlob(pubKey, name, digest)
-    if (data !== null) {
+    const dataStream = await storage.getBlobStream(pubKey, name, digest)
+    if (dataStream !== null) {
       console.debug(`Retrieving blob with digest ${digest}.`)
       res.set('Docker-Content-Digest', digest)
-      res.send(data)
+      pipeline(dataStream, res)
     } else {
       console.debug(`Blob with digest ${digest} does not exists.`)
       res.sendStatus(404)
