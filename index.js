@@ -2,10 +2,7 @@ import DatDns from 'dat-dns'
 import Debug from 'debug'
 import express from 'express'
 import DistributedStorage from './lib/distributed-storage.js'
-import { promisify } from 'util'
-import { pipeline as pipelineCb } from 'stream'
-
-const pipeline = promisify(pipelineCb)
+import { pipeline } from 'stream/promises'
 
 const app = express()
 const debug = Debug('whalesong:index')
@@ -98,11 +95,11 @@ async function setUpApp () {
   app.get('/v2/:org/:name/blobs/:digest', async (req, res) => {
     const { org, name, digest } = req.params
     const pubKey = await lookupOrg(org)
-    const dataStream = await storage.getBlobStream(pubKey, name, digest)
+    const dataStream = await storage.getBlob(pubKey, name, digest)
     if (dataStream !== null) {
       console.debug(`Retrieving blob with digest ${digest}.`)
       res.set('Docker-Content-Digest', digest)
-      pipeline(dataStream, res)
+      await pipeline(dataStream, res)
     } else {
       console.debug(`Blob with digest ${digest} does not exists.`)
       res.sendStatus(404)
@@ -125,12 +122,12 @@ async function setUpApp () {
   app.get('/v2/:org/:name/manifests/:tag', async (req, res) => {
     const { org, name, tag } = req.params
     const pubKey = await lookupOrg(org)
-    const { digest, data } = await storage.getManifest(pubKey, name, tag)
+    const { digest, stream } = await storage.getManifest(pubKey, name, tag)
     if (digest !== null) {
       console.debug(`Retrieving manifest with digest ${digest}`)
       res.set('Docker-Content-Digest', digest)
       res.set('Content-Type', 'application/vnd.docker.distribution.manifest.v2+json')
-      res.send(data)
+      await pipeline(stream, res)
     } else {
       console.debug(`Manifest with tag ${tag} does not exist`)
       res.sendStatus(404)
