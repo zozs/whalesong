@@ -1,10 +1,9 @@
 import DatDns from 'dat-dns'
 import Debug from 'debug'
-import express from 'express'
+import Koa from 'koa'
+import Router from '@koa/router'
 import DistributedStorage from './lib/distributed-storage.js'
-import { pipeline } from 'stream/promises'
 
-const app = express()
 const debug = Debug('whalesong:index')
 
 const host = process.env.WHALESONG_HOST || 'localhost'
@@ -12,6 +11,9 @@ const port = process.env.WHALESONG_PORT || '5005'
 const hostport = `http://${host}:${port}`
 
 async function setUpApp () {
+  const app = new Koa()
+  const router = new Router()
+
   console.log('Initializing storage provider. Please wait.')
   const storage = new DistributedStorage()
   await storage.init()
@@ -28,123 +30,123 @@ async function setUpApp () {
 
   const lookupOrg = async (org) => whalesongDns.resolveName(org)
 
-  app.use(express.raw({ type: () => true, limit: 1024 * 1024 * 1024 })) // max 1 GiB chunk
-
-  app.get('/', (req, res) => {
-    res.send('Hello World!')
+  router.get('/', (ctx) => {
+    ctx.body = 'Hello World!'
   })
 
-  app.get('/v2/', (req, res) => {
-    res.send('{}')
+  router.get('/v2/', (ctx) => {
+    ctx.body = '{}'
   })
 
-  app.post('/v2/:org/:name/blobs/uploads/', async (req, res) => {
-    const { org, name } = req.params
+  router.post('/v2/:org/:name/blobs/uploads/', async (ctx) => {
+    const { org, name } = ctx.params
     const pubKey = await lookupOrg(org)
     const uuid = await storage.newUpload(pubKey, name)
 
     debug('Creating temporary upload')
 
-    res.set('Location', `${hostport}/v2/${org}/${name}/blobs/uploads/${uuid}`)
-    res.set('Range', '0-0')
-    res.sendStatus(202)
+    ctx.set('Location', `${hostport}/v2/${org}/${name}/blobs/uploads/${uuid}`)
+    ctx.set('Range', '0-0')
+    ctx.status = 202
   })
 
-  app.patch('/v2/:org/:name/blobs/uploads/:uuid', async (req, res) => {
-    const { org, name, uuid } = req.params
+  router.patch('/v2/:org/:name/blobs/uploads/:uuid', async (ctx) => {
+    const { org, name, uuid } = ctx.params
     const pubKey = await lookupOrg(org)
-    const uploaded = await storage.patchUpload(pubKey, name, uuid, req.body)
+    const uploaded = await storage.patchUpload(pubKey, name, uuid, ctx.req)
 
     debug(`UUID ${uuid} now has ${uploaded} bytes.`)
-    res.set('Location', `${hostport}/v2/${org}/${name}/blobs/uploads/${uuid}`)
-    res.set('Range', `0-${uploaded}`)
-    res.sendStatus(202)
+    ctx.set('Location', `${hostport}/v2/${org}/${name}/blobs/uploads/${uuid}`)
+    ctx.set('Range', `0-${uploaded}`)
+    ctx.status = 202
   })
 
-  app.put('/v2/:org/:name/blobs/uploads/:uuid', async (req, res) => {
-    const { org, name, uuid } = req.params
+  router.put('/v2/:org/:name/blobs/uploads/:uuid', async (ctx) => {
+    const { org, name, uuid } = ctx.params
     const pubKey = await lookupOrg(org)
-    const expectedDigest = req.query.digest
-    const { digest, uploaded } = await storage.putUpload(pubKey, name, uuid, req.body)
+    const expectedDigest = ctx.query.digest
+    const { digest, uploaded } = await storage.putUpload(pubKey, name, uuid, ctx.req)
 
     debug(`UUID ${uuid} now has ${uploaded} bytes after finish.`)
     if (expectedDigest !== digest) {
-      console.warn(`expected digest ${expectedDigest} did not match actual digest ${digest}`)
-      res.sendStatus(400)
+      ctx.throw(400, `Expected digest ${expectedDigest} did not match actual digest ${digest}`)
     } else {
       console.log(`Finished uploading blob with digest ${digest}, for UUID ${uuid}`)
-      res.set('Docker-Content-Digest', digest)
-      res.set('Location', `${hostport}/v2/${org}/${name}/blobs/${digest}`)
-      res.sendStatus(204)
+      ctx.set('Docker-Content-Digest', digest)
+      ctx.set('Location', `${hostport}/v2/${org}/${name}/blobs/${digest}`)
+      ctx.status = 204
     }
   })
 
-  app.head('/v2/:org/:name/blobs/:digest', async (req, res) => {
-    const { org, name, digest } = req.params
+  router.head('/v2/:org/:name/blobs/:digest', async (ctx) => {
+    const { org, name, digest } = ctx.params
     const pubKey = await lookupOrg(org)
     if (await storage.hasBlob(pubKey, name, digest)) {
       console.debug(`Blob with digest ${digest} exists.`)
-      res.set('Docker-Content-Digest', digest)
-      res.sendStatus(200)
+      ctx.set('Docker-Content-Digest', digest)
+      ctx.status = 200
     } else {
       console.debug(`Blob with digest ${digest} does not exists.`)
-      res.sendStatus(404)
+      ctx.throw(404, 'Not found')
     }
   })
 
-  app.get('/v2/:org/:name/blobs/:digest', async (req, res) => {
-    const { org, name, digest } = req.params
+  router.get('/v2/:org/:name/blobs/:digest', async (ctx) => {
+    const { org, name, digest } = ctx.params
     const pubKey = await lookupOrg(org)
     const dataStream = await storage.getBlob(pubKey, name, digest)
     if (dataStream !== null) {
       console.debug(`Retrieving blob with digest ${digest}.`)
-      res.set('Docker-Content-Digest', digest)
-      await pipeline(dataStream, res)
+      ctx.set('Docker-Content-Digest', digest)
+      ctx.body = dataStream
     } else {
       console.debug(`Blob with digest ${digest} does not exists.`)
-      res.sendStatus(404)
+      ctx.throw(404, 'Not found')
     }
   })
 
-  app.head('/v2/:org/:name/manifests/:tag', async (req, res) => {
-    const { org, name, tag } = req.params
+  router.head('/v2/:org/:name/manifests/:tag', async (ctx) => {
+    const { org, name, tag } = ctx.params
     const pubKey = await lookupOrg(org)
     const { digest } = await storage.getManifest(pubKey, name, tag)
     if (digest !== null) {
-      res.set('Docker-Content-Digest', digest)
-      res.sendStatus(200)
+      ctx.set('Docker-Content-Digest', digest)
+      ctx.set('Content-Type', 'application/vnd.docker.distribution.manifest.v2+json')
+      ctx.status = 200
     } else {
       console.debug(`Manifest with tag ${tag} does not exist`)
-      res.sendStatus(404)
+      ctx.throw(404, 'Not found')
     }
   })
 
-  app.get('/v2/:org/:name/manifests/:tag', async (req, res) => {
-    const { org, name, tag } = req.params
+  router.get('/v2/:org/:name/manifests/:tag', async (ctx) => {
+    const { org, name, tag } = ctx.params
     const pubKey = await lookupOrg(org)
     const { digest, stream } = await storage.getManifest(pubKey, name, tag)
     if (digest !== null) {
       console.debug(`Retrieving manifest with digest ${digest}`)
-      res.set('Docker-Content-Digest', digest)
-      res.set('Content-Type', 'application/vnd.docker.distribution.manifest.v2+json')
-      await pipeline(stream, res)
+      ctx.set('Docker-Content-Digest', digest)
+      ctx.set('Content-Type', 'application/vnd.docker.distribution.manifest.v2+json')
+      ctx.body = stream
     } else {
       console.debug(`Manifest with tag ${tag} does not exist`)
-      res.sendStatus(404)
+      ctx.throw(404, 'Not found')
     }
   })
 
-  app.put('/v2/:org/:name/manifests/:tag', async (req, res) => {
-    const { org, name, tag } = req.params
+  router.put('/v2/:org/:name/manifests/:tag', async (ctx) => {
+    const { org, name, tag } = ctx.params
     const pubKey = await lookupOrg(org)
-    const digest = await storage.putManifest(pubKey, name, tag, req.body)
+    const digest = await storage.putManifest(pubKey, name, tag, ctx.req)
 
     console.log(`Stored manifest ${org}/${name}:${tag} with digest ${digest}`)
 
-    res.set('Docker-Content-Digest', digest)
-    res.set('Location', `${hostport}/v2/${org}/${name}/manifests/${digest}`)
-    res.sendStatus(201)
+    ctx.set('Docker-Content-Digest', digest)
+    ctx.set('Location', `${hostport}/v2/${org}/${name}/manifests/${digest}`)
+    ctx.status = 201
   })
+
+  app.use(router.routes())
 
   app.listen(port, () => {
     console.log(`Whalesong listening at ${hostport}`)
