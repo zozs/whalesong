@@ -3,6 +3,7 @@ import Debug from 'debug'
 import Koa from 'koa'
 import Router from '@koa/router'
 import DistributedStorage from './lib/distributed-storage.js'
+import { pipeline } from 'stream/promises'
 
 const debug = Debug('whalesong:index')
 
@@ -42,7 +43,7 @@ async function setUpApp () {
   })
 
   router.get('/v2/', (ctx) => {
-    ctx.body = '{}'
+    ctx.body = {}
   })
 
   router.post('/v2/:org/:name/blobs/uploads/', async (ctx) => {
@@ -64,7 +65,7 @@ async function setUpApp () {
 
     debug(`UUID ${uuid} now has ${uploaded} bytes.`)
     ctx.set('Location', `${hostport}/v2/${org}/${name}/blobs/uploads/${uuid}`)
-    ctx.set('Range', `0-${uploaded}`)
+    ctx.set('Range', `0-${uploaded}`) // TODO: what am I doing here?
     ctx.status = 202
   })
 
@@ -81,7 +82,7 @@ async function setUpApp () {
       console.log(`Finished uploading blob with digest ${digest}, for UUID ${uuid}`)
       ctx.set('Docker-Content-Digest', digest)
       ctx.set('Location', `${hostport}/v2/${org}/${name}/blobs/${digest}`)
-      ctx.status = 204
+      ctx.status = 201
     }
   })
 
@@ -90,10 +91,24 @@ async function setUpApp () {
     const pubKey = await lookupOrg(ctx, org)
     if (await storage.hasBlob(pubKey, name, digest)) {
       console.debug(`Blob with digest ${digest} exists.`)
+      // TODO: ugly hack to get length, in the future, store length + content type in hyperbee
+      const dataStream = await storage.getBlob(pubKey, name, digest)
+      let contentLength = 0
+      await pipeline(
+        dataStream,
+        async function * (source) {
+          for await (const chunk of source) {
+            contentLength += chunk.byteLength
+          }
+        }
+      )
+      ctx.body = null
       ctx.set('Docker-Content-Digest', digest)
+      ctx.set('Content-Length', contentLength)
+      ctx.set('Content-Type', 'application/vnd.docker.image.rootfs.diff.tar.gzip')
       ctx.status = 200
     } else {
-      console.debug(`Blob with digest ${digest} does not exists.`)
+      console.debug(`Blob with digest ${digest} does not exists (head).`)
       ctx.throw(404, 'Not found')
     }
   })
@@ -104,8 +119,9 @@ async function setUpApp () {
     const dataStream = await storage.getBlob(pubKey, name, digest)
     if (dataStream !== null) {
       console.debug(`Retrieving blob with digest ${digest}.`)
-      ctx.set('Docker-Content-Digest', digest)
       ctx.body = dataStream
+      ctx.set('Docker-Content-Digest', digest)
+      ctx.set('Content-Type', 'application/vnd.docker.image.rootfs.diff.tar.gzip')
     } else {
       console.debug(`Blob with digest ${digest} does not exists.`)
       ctx.throw(404, 'Not found')
@@ -115,13 +131,25 @@ async function setUpApp () {
   router.head('/v2/:org/:name/manifests/:tag', async (ctx) => {
     const { org, name, tag } = ctx.params
     const pubKey = await lookupOrg(ctx, org)
-    const { digest } = await storage.getManifest(pubKey, name, tag)
+    const { digest, stream } = await storage.getManifest(pubKey, name, tag)
     if (digest !== null) {
+      let contentLength = 0
+      await pipeline(
+        stream,
+        async function * (source) {
+          for await (const chunk of source) {
+            contentLength += chunk.byteLength
+          }
+        }
+      )
+
+      ctx.body = null
       ctx.set('Docker-Content-Digest', digest)
+      ctx.set('Content-Length', contentLength)
       ctx.set('Content-Type', 'application/vnd.docker.distribution.manifest.v2+json')
       ctx.status = 200
     } else {
-      console.debug(`Manifest with tag ${tag} does not exist`)
+      console.debug(`Manifest with tag ${tag} does not exist (head)`)
       ctx.throw(404, 'Not found')
     }
   })
@@ -132,9 +160,9 @@ async function setUpApp () {
     const { digest, stream } = await storage.getManifest(pubKey, name, tag)
     if (digest !== null) {
       console.debug(`Retrieving manifest with digest ${digest}`)
+      ctx.body = stream
       ctx.set('Docker-Content-Digest', digest)
       ctx.set('Content-Type', 'application/vnd.docker.distribution.manifest.v2+json')
-      ctx.body = stream
     } else {
       console.debug(`Manifest with tag ${tag} does not exist`)
       ctx.throw(404, 'Not found')
@@ -148,9 +176,9 @@ async function setUpApp () {
 
     console.log(`Stored manifest ${org}/${name}:${tag} with digest ${digest}`)
 
+    ctx.status = 201
     ctx.set('Docker-Content-Digest', digest)
     ctx.set('Location', `${hostport}/v2/${org}/${name}/manifests/${digest}`)
-    ctx.status = 201
   })
 
   app.use(router.routes())

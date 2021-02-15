@@ -87,16 +87,15 @@ In short, this means that the URL above can also be written as:
 
 `localhost:5005/whalesong.club/hello:latest`
 
-This works by looking for either a DNS TXT record or a `/.well-known/whalesong` file on `whalesong.club`.
+The works by adding a `/.well-known/whalesong` file to the webserver on `whalesong.club`.
 
-* The DNS TXT record has the format: `"whalesongkey=efb166fd6a9cb83bdc3d58f362f5a7052c730924b614989b0fbd730cd77a6c2c"`
-* The `/.well-known/whalesong` file has the contents
+The `/.well-known/whalesong` file has the contents
 ```
 whalesong://efb166fd6a9cb83bdc3d58f362f5a7052c730924b614989b0fbd730cd77a6c2c
 ttl=3600
 ```
 
-You only need to provide one of the above.
+which points to the desired public key.
 
 ### Other facts
 
