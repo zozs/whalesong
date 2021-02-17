@@ -183,7 +183,7 @@ async function setUpApp () {
 
   app.use(router.routes())
 
-  app.listen(port, () => {
+  app.listen(port, host, () => {
     console.log(`Whalesong listening at ${hostport}`)
   })
 }
