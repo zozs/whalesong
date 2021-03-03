@@ -65,7 +65,7 @@ async function setUpApp () {
 
     debug(`UUID ${uuid} now has ${uploaded} bytes.`)
     ctx.set('Location', `${hostport}/v2/${org}/${name}/blobs/uploads/${uuid}`)
-    ctx.set('Range', `0-${uploaded}`) // TODO: what am I doing here?
+    ctx.set('Range', `0-${uploaded - 1}`) // Range is inclusive, so should be one less than the upload count.
     ctx.status = 202
   })
 

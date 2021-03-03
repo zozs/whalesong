@@ -6,7 +6,7 @@ Distributed container registry built on hypercores and IPFS
 
 Requirements:
 
-* Node 14 or later
+* Node 15 or later
 
 Clone this repository, and install dependencies.
 
