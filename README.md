@@ -24,10 +24,6 @@ Launch the daemon by running
 
 inside the directory above. When the deamon is up, you now have a container registry listening on port 5005. You can then try to push and pull to the distributed registry.
 
-To see a (verbose) debug log use:
-
-`DEBUG=* node index.js`
-
 ### Example
 
 After launching the daemon above, open a new shell, and try to pull and run the following test image, which will print a small greeting on your screen.
@@ -37,7 +33,7 @@ $ docker run localhost:5005/efb166fd6a9cb83bdc3d58f362f5a7052c730924b614989b0fbd
 A distributed greeting to you, my friend :)
 ```
 
-Alternatively, you can use the following commands to pull the same image, but using a human-readable name (see [Human-readable organisations/pubkeys](#human-readable-organisationspubkeys) below for an explanation on how this works).
+Alternatively, you can use the following commands to pull the same image, but using a human-readable name (see [Human-readable organisations/pubkeys](docs/human-readable-organisations.md) in `docs/` for an explanation on how this works).
 
 ```
 $ docker run localhost:5005/whalesong.club/hello
@@ -68,7 +64,7 @@ A container image can be pushed using docker with
 
 `docker push <url of image>`
 
-where the url must contain the url of the localhost registry,as well as your own public key, and the name you want to give your image. Your own public key is printed when you launch the daemon.
+where the url must contain the url of the localhost registry,as well as your own public key, and the name you want to give your image. **Your own public key is printed when you launch the daemon.**
 
 For example, assuming you have the public key `abcd1234`, and a Dockerfile in the current directory, build and push the image using:
 
@@ -79,42 +75,21 @@ docker push localhost:5005/abcd1234/myownimage:latest
 
 Anyone else running `whalesong` can now pull your image using the url `localhost:5005/abcd1234/myownimage:latest` and run it on their own computer.
 
-### Human-readable organisations/pubkeys
-
-When using `localhost:5005/efb166fd6a9cb83bdc3d58f362f5a7052c730924b614989b0fbd730cd77a6c2c/hello:latest` as the URL for whalesong, you rely solely on hypercores and IPFS. However, the long public key of the hypercore (`efb166fd6a9cb83bdc3d58f362f5a7052c730924b614989b0fbd730cd77a6c2c`) is not very friendly for humans. Therefore, whalesong also supports human-readable organisation names, by using [dat-dns](https://github.com/datprotocol/dat-dns).
-
-In short, this means that the URL above can also be written as:
-
-`localhost:5005/whalesong.club/hello:latest`
-
-The works by adding a `/.well-known/whalesong` file to the webserver on `whalesong.club`.
-
-The `/.well-known/whalesong` file has the contents
-```
-whalesong://efb166fd6a9cb83bdc3d58f362f5a7052c730924b614989b0fbd730cd77a6c2c
-ttl=3600
-```
-
-which points to the desired public key.
-
 ### Other facts
 
 The data is stored in the `~/.whalesong` directory in your home.
+If you want to get a fresh start, you can delete it, but _your private keys will disappear_ so don't do this unless you know what you're doing.
 
 ## Todo
 
-* Make container registry pass conformance tests (see below).
-* Increase performance and reduce memory usage by not caching layers in memory when passing them between IPFS and the registry.
+* Make container registry pass conformance tests (see [docs/conformance.md](docs/conformance.md)).
 * Support more registry operations, such as content discovery and content management.
 * Support multiple writable feeds from a single host.
 * Cleanup of unused blobs.
 * General reliability improvements.
 * Automatically prune old and failed/aborted uploads.
 * Add tests.
-
-## Conformance
-
-The current implementation of the container registry does _not_ fully conform to the [Open Container Initiative Distribution Specification](https://github.com/opencontainers/distribution-spec/blob/master/spec.md). It seems to work well enough with Docker anyway, but it would be nice to make the conformance tests pass.
+* Provide service files to launch whalesong on boot.
 
 ## License
 
