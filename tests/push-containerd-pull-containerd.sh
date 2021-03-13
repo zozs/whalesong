@@ -9,7 +9,7 @@ ctr image pull "$FULL_TEST_IMAGE"
 ctr image tag "$FULL_TEST_IMAGE" "$WHALESONG_IMAGE"
 
 # Push using containerd
-ctr image push --plain-http "$WHALESONG_IMAGE"
+ctr image push --platform amd64 --plain-http "$WHALESONG_IMAGE"
 
 # Clean stored image before pulling back down again
 ctr image rm "$FULL_TEST_IMAGE" "$WHALESONG_IMAGE"
