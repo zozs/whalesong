@@ -1,0 +1,31 @@
+name: Push/pull tests
+
+on: [push, pull_request]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        script:
+        - push-docker-pull-docker.sh
+        - push-docker-pull-containerd.sh
+        #- push-containerd-pull-docker.sh # TODO: fix containerd pushing first
+        #- push-containerd-pull-containerd.sh # TODO: fix containerd pushing first
+
+    steps:
+    - uses: actions/checkout@v2
+    - uses: actions/setup-node@v1
+      name: "Use Node.js 15"
+      with:
+        node-version: "15"
+    - uses: crazy-max/ghaction-setup-containerd@v1
+      name: Set up containerd
+    - run: npm ci
+      name: Installing whalesong
+    - run: WHALESONG_DEBUG_ROUTES=1 DEBUG="*,-koa-router,-hypercore" node index.js &
+      name: Launching an instance of whalesong in the background
+    - run: sudo bash ${{ matrix.script }}
+      working-directory: tests
+      name: Run push/pull test ${{ matrix.script }}
