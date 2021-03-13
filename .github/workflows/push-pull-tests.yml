@@ -11,8 +11,8 @@ jobs:
         script:
         - push-docker-pull-docker.sh
         - push-docker-pull-containerd.sh
-        #- push-containerd-pull-docker.sh # TODO: fix containerd pushing first
-        #- push-containerd-pull-containerd.sh # TODO: fix containerd pushing first
+        - push-containerd-pull-docker.sh
+        - push-containerd-pull-containerd.sh
 
     steps:
     - uses: actions/checkout@v2
