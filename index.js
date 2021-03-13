@@ -2,6 +2,7 @@ import DatDns from 'dat-dns'
 import Debug from 'debug'
 import Koa from 'koa'
 import Router from '@koa/router'
+import { addDebugRoutes } from './lib/debug-routes.js'
 import DistributedStorage from './lib/distributed-storage.js'
 import { pipeline } from 'stream/promises'
 
@@ -19,8 +20,9 @@ async function setUpApp () {
   const storage = new DistributedStorage()
   await storage.init()
   const myPubKey = await storage.getMyPubKey()
+  const myBaseUrl = `${host}:${port}/${myPubKey}`
   console.log('Initialization complete. To tag and push images, use the following URL:')
-  console.log(`${host}:${port}/${myPubKey}/<name>:<tag>`)
+  console.log(`${myBaseUrl}/<name>:<tag>`)
 
   const whalesongDns = DatDns({
     hashRegex: /^[0-9a-f]{64}?$/i,
@@ -180,6 +182,11 @@ async function setUpApp () {
     ctx.set('Docker-Content-Digest', digest)
     ctx.set('Location', `${hostport}/v2/${org}/${name}/manifests/${digest}`)
   })
+
+  // Only expose debug routes when explicitly requested.
+  if (process.env.WHALESONG_DEBUG_ROUTES) {
+    addDebugRoutes(router, myBaseUrl)
+  }
 
   app.use(router.routes())
 
