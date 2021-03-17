@@ -20,5 +20,5 @@ jobs:
         node-version: "15"
     - run: npm i
       name: Installing whalesong
-    - run: npm test
+    - run: WHALESONG_DEBUG_ROUTES=1 npm test
       name: Run lint and test

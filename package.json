@@ -5,7 +5,7 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "test": "standard && tap --no-esm",
+    "test": "standard && WHALESONG_DEBUG_ROUTES=1 tap --no-esm",
     "dev": "DEBUG=* node index.js",
     "ipfsid": "IPFS_PATH=~/.whalesong/ipfs ipfs id"
   },
