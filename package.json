@@ -27,10 +27,10 @@
     "@koa/router": "^10.0.0",
     "dat-dns": "^4.1.2",
     "debug": "^4.3.1",
-    "go-ipfs": "^0.7.0",
+    "go-ipfs": "^0.8.0",
     "hyperbee": "^1.5.3",
-    "hypercore": "^9.8.0",
-    "ipfs-http-client": "^48.2.2",
+    "hypercore": "^9.9.1",
+    "ipfs-http-client": "^49.0.4",
     "ipfsd-ctl": "^7.1.1",
     "koa": "^2.13.1",
     "uuid": "^8.3.2"

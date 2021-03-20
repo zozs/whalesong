@@ -3,6 +3,8 @@ import tap from 'tap'
 import { setupApp } from '../lib/api.js'
 import DistributedStorage from '../lib/distributed-storage.js'
 
+tap.setTimeout(60000)
+
 tap.test('init', async tapinit => {
   console.debug('Initializing storage provider for test')
   const storage = new DistributedStorage()
