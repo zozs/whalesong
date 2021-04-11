@@ -1,0 +1,26 @@
+name: Node.js tests
+
+on:
+  push:
+    branches:
+    - main
+  pull_request:
+    branches:
+    - main
+
+jobs:
+  test:
+    runs-on: ubuntu-20.04
+
+    steps:
+    - uses: actions/checkout@v2
+    - uses: actions/setup-node@v1
+      name: "Use Node.js 15"
+      with:
+        node-version: "15"
+    - run: sudo apt update && sudo apt install libsodium23 libsodium-dev
+      name: Install libsodium
+    - run: npm i
+      name: Installing whalesong
+    - run: WHALESONG_DEBUG_ROUTES=1 npm test
+      name: Run lint and test

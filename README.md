@@ -88,8 +88,9 @@ If you want to get a fresh start, you can delete it, but _your private keys will
 * Cleanup of unused blobs.
 * General reliability improvements.
 * Automatically prune old and failed/aborted uploads.
-* Add tests.
+* Extend tests.
 * Provide service files to launch whalesong on boot.
+* Build and push with kaniko in addition to current push/pull tests.
 
 ## License
 

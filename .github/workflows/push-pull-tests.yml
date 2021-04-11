@@ -1,10 +1,16 @@
 name: Push/pull tests
 
-on: [push, pull_request]
+on:
+  push:
+    branches:
+    - main
+  pull_request:
+    branches:
+    - main
 
 jobs:
   test:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-18.04
 
     strategy:
       matrix:
@@ -22,6 +28,8 @@ jobs:
         node-version: "15"
     - uses: crazy-max/ghaction-setup-containerd@v1
       name: Set up containerd
+    - run: sudo apt update && sudo apt install libsodium23 libsodium-dev
+      name: Install libsodium
     - run: npm ci
       name: Installing whalesong
     - run: WHALESONG_DEBUG_ROUTES=1 DEBUG="*,-koa-router,-hypercore" node index.js &
