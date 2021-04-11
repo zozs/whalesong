@@ -1,6 +1,6 @@
 {
   "name": "whalesong",
-  "version": "0.4.4",
+  "version": "0.5.0",
   "description": "Distributed container registry built on hypercores and IPFS",
   "main": "index.js",
   "type": "module",
