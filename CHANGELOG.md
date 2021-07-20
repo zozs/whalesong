@@ -2,6 +2,11 @@
 
 ## Current
 
+## v0.5.1
+
+* Add support for manually setting the external URL used in Location headers.
+* Add documentation about TLS and authentication.
+
 ## v0.5.0
 
 * **Breaking change:** new metadata format to support multiarch images
