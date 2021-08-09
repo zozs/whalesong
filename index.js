@@ -17,4 +17,8 @@ async function main () {
   })
 }
 
+process.on('unhandledRejection', error => {
+  console.error('==> Got unhandled rejection:', error.message)
+})
+
 main().catch(e => console.error(`top-level exception: ${e} json: ${JSON.stringify(e)}`))
