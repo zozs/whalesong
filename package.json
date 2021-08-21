@@ -1,6 +1,6 @@
 {
   "name": "whalesong",
-  "version": "0.5.2",
+  "version": "0.6.0",
   "description": "Distributed container registry built on hypercores and IPFS",
   "main": "index.js",
   "type": "module",
@@ -30,8 +30,9 @@
     "go-ipfs": "^0.9.0",
     "hyperbee": "^1.5.3",
     "hypercore": "^9.9.1",
-    "ipfs-http-client": "^50.1.2",
-    "ipfsd-ctl": "^9.0.0",
+    "hyperspace": "^3.19.0",
+    "ipfs-http-client": "^52.0.1",
+    "ipfsd-ctl": "^10.0.3",
     "koa": "^2.13.1",
     "uuid": "^8.3.2"
   },
