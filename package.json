@@ -31,8 +31,8 @@
     "hyperbee": "^1.5.3",
     "hypercore": "^9.9.1",
     "hyperspace": "^3.19.0",
-    "ipfs-http-client": "^50.1.2",
-    "ipfsd-ctl": "^9.0.0",
+    "ipfs-http-client": "^52.0.1",
+    "ipfsd-ctl": "^10.0.3",
     "koa": "^2.13.1",
     "uuid": "^8.3.2"
   },
