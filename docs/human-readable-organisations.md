@@ -1,6 +1,6 @@
 # Human-readable organisations/pubkeys
 
-When using `localhost:5005/6d724d1a58ad3e11c8e892be07d099f949de01903b1a71edd52431ad9a017c06/hello:latest` as the URL for whalesong, you rely solely on hypercores and IPFS. However, the long public key of the hypercore (`6d724d1a58ad3e11c8e892be07d099f949de01903b1a71edd52431ad9a017c06`) is not very friendly for humans. Therefore, whalesong also supports human-readable organisation names, by using [dat-dns](https://github.com/datprotocol/dat-dns).
+When using `localhost:5005/8361c37efa52cb2809f459fcf2559966dd384787f7ea6f0475c168ac069a31fb/hello:latest` as the URL for whalesong, you rely solely on hypercores and IPFS. However, the long public key of the hypercore (`8361c37efa52cb2809f459fcf2559966dd384787f7ea6f0475c168ac069a31fb`) is not very friendly for humans. Therefore, whalesong also supports human-readable organisation names, by using [dat-dns](https://github.com/datprotocol/dat-dns).
 
 In short, this means that the URL above can also be written as:
 
@@ -10,7 +10,7 @@ The works by adding a `/.well-known/whalesong` file to the webserver on `whaleso
 
 The `/.well-known/whalesong` file has the contents
 ```
-whalesong://6d724d1a58ad3e11c8e892be07d099f949de01903b1a71edd52431ad9a017c06
+whalesong://8361c37efa52cb2809f459fcf2559966dd384787f7ea6f0475c168ac069a31fb
 ttl=3600
 ```
 

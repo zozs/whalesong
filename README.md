@@ -29,7 +29,7 @@ inside the directory above. When the deamon is up, you now have a container regi
 After launching the daemon above, open a new shell, and try to pull and run the following test image, which will print a small greeting on your screen.
 
 ```
-$ docker run localhost:5005/6d724d1a58ad3e11c8e892be07d099f949de01903b1a71edd52431ad9a017c06/hello:latest
+$ docker run localhost:5005/8361c37efa52cb2809f459fcf2559966dd384787f7ea6f0475c168ac069a31fb/hello:latest
 A distributed greeting to you, my friend :)
 ```
 
@@ -50,12 +50,12 @@ A container image can be pulled using docker with
 
 where the url will be of the following form for whalesong:
 
-`localhost:5005/6d724d1a58ad3e11c8e892be07d099f949de01903b1a71edd52431ad9a017c06/hello:latest`
+`localhost:5005/8361c37efa52cb2809f459fcf2559966dd384787f7ea6f0475c168ac069a31fb/hello:latest`
 
 The url consists of the following parts:
 
 * `localhost:5005`: The url of the registry that is running on your local machine. You will always use this url for both pulling from and pushing to the distributed registry.
-* `6d724d1a58ad3e11c8e892be07d099f949de01903b1a71edd52431ad9a017c06`: A long hexadecimal string, which is the encoded public key of the organisation/person whose image you want to pull or push. You can only push to public keys you own, but can pull from any public key you know of.
+* `8361c37efa52cb2809f459fcf2559966dd384787f7ea6f0475c168ac069a31fb`: A long hexadecimal string, which is the encoded public key of the organisation/person whose image you want to pull or push. You can only push to public keys you own, but can pull from any public key you know of.
 * `hello:latest`: The image name (`hello`) and tag (`latest`) for the given image you want to pull. An organization or person may have multiple images and tags.
 
 ### Push an image
